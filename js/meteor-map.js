@@ -118,7 +118,6 @@ function renderMap(world, data) {
       .on('mouseover', function(d) {
         var mousePos = d3.mouse(d3.select(mapID).node()),
             date = new Date(d.properties.year);
-        //if (d.properties.mass > 1000000) {console.log(date.getFullYear());}
         d3.select('.tooltip h2')
           .text(d.properties.name);
         d3.select('.tooltip p')
@@ -126,6 +125,9 @@ function renderMap(world, data) {
         var tooltipWidth = d3.select('.tooltip')
                              .node().getBoundingClientRect().width;
         mousePos[0] = mousePos[0] < (w/2) ? mousePos[0] : mousePos[0] - tooltipWidth;
+        var tooltipHeight = d3.select('.tooltip')
+                              .node().getBoundingClientRect().height;
+        mousePos[1] = mousePos[1] < (h/2) ? mousePos[1] : mousePos[1] - tooltipHeight;
         d3.select('.tooltip')
           .classed('hidden', false);
 
