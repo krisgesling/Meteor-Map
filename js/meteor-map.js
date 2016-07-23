@@ -3,14 +3,14 @@ var mapID = '#map-container',
     //colorScale = ['#F9CFD7', '#EF8096', '#B5435A', '#6F1C2C', '#321319'],
     //colorScale = ['#FF5050', '#FF1616', '#E20000', '#B10000', '#7D0000'],
     //colorScale = ['#FF5050', '#FF0000', '#B40000', '#8A0000', '#500000'],
-    colorScale = [ '#FF0000', '#E50000', '#C20000', '#A00000'],
+    colorScale = [ '#FF0000', '#E50000', '#C20000', '#A00000', '#500000'],
     worldJSON = 'data/world-geo2-min.json',
     dataJSON = 'data/meteorite-strike-data.json';
-//d3.scale.category20c();
 
 // Map dimensions
 var w = window.innerWidth,
-    h = window.innerHeight;
+    h = window.innerHeight,
+    maxR = 15;
 
 function sizeChange() {
   d3.select('#map-svg')
@@ -89,12 +89,12 @@ function renderMap(world, data) {
         //Null also returns 1.
         var r = d3.scale.sqrt()
                   .domain([1, 23000000])
-                  .rangeRound([1, 16]);
+                  .rangeRound([1, maxR]);
         d.properties.r = r(Number(d.properties.mass));
         return d.properties.r;
       })
       .style('fill', function (d) {
-        return colorScale[parseInt(d.properties.r/4-1)];
+        return colorScale[parseInt(d.properties.r / maxR * colorScale.length -1)];
       })
 
       // TOOLTIPS
@@ -105,7 +105,7 @@ function renderMap(world, data) {
         d3.select('.tooltip h2')
           .text(d.properties.name);
         d3.select('.tooltip p')
-          .html('Landed: ' + date.getFullYear() + '<br>Mass: ' + d.properties.r + '<br>Classification: ' + d.properties.recclass);
+          .html('Landed: ' + date.getFullYear() + '<br>Mass: ' + d.properties.mass + '<br>Classification: ' + d.properties.recclass);
         d3.select('.tooltip').classed('hidden', false);
       })
       .on('mouseout', function() {
