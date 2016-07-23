@@ -7,6 +7,7 @@
 
 body {
   background: #333;
+  font-family: Share-Tech-Mono;
   margin: 0;
 }
 
@@ -15,7 +16,6 @@ header {
   background-color: #18324E;
   color: white;
   display: flex;
-  font-family: Share-Tech-Mono;
   position: fixed;
   width: 100%;
 }
@@ -55,7 +55,7 @@ svg {
   opacity: 1;
   padding: 0 15px 15px;
   pointer-events: none;
-  position: fixed;
+  position: absolute;
   transition: visibility 0s, opacity 0.3s linear;
   visibility: visible;
 }
@@ -63,4 +63,28 @@ svg {
   opacity: 0;
   transition: visibility 0s, opacity 0.3s linear;
   visibility: hidden;
+}
+.label {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+footer {
+  align-items: flex-end;
+  background-color: #333;
+  bottom: 0;
+  color: white;
+  display: flex;
+  font-family: sans-serif;
+  justify-content: space-between;
+  position: fixed;
+  width: 100%;
+}
+footer p, footer img {
+  margin: 1em 40px;
+}
+footer img {
+  height: 2em;
+}
+footer img:hover{
+  opacity: 0.6;
 }

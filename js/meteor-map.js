@@ -9,14 +9,14 @@ var mapID = '#map-container',
 
 // Map dimensions
 var w = window.innerWidth,
-    h = window.innerHeight,
+    h = window.innerHeight - 10,
     maxR = 15;
 
 function sizeChange() {
   d3.select('#map-svg')
     .attr({
       width: window.innerWidth,
-      height: window.innerHeight
+      height: window.innerHeight - 10
     });
 }
 
@@ -70,6 +70,23 @@ function renderMap(world, data) {
   d3.json(data, function(error, json) {
     if (error) return console.warn(error);
 
+    function massConvert(mass) {
+      switch (true) {
+        case (mass < 1000):
+          mass += 'g';
+          break;
+        case (mass < 1000000):
+          mass = mass / 1000 + 'kg';
+          break;
+        case (mass >= 1000000):
+          mass = mass / 1000000 + 't';
+          break;
+        default:
+          break;
+      }
+      return mass;
+    }
+
     svg.selectAll('circle')
        .data(json.features)
        .enter()
@@ -105,8 +122,18 @@ function renderMap(world, data) {
         d3.select('.tooltip h2')
           .text(d.properties.name);
         d3.select('.tooltip p')
-          .html('Landed: ' + date.getFullYear() + '<br>Mass: ' + d.properties.mass + '<br>Classification: ' + d.properties.recclass);
-        d3.select('.tooltip').classed('hidden', false);
+          .html('<span class="label">Landed:</span> ' + date.getFullYear() + '<br><span class="label">Mass:</span> ' + massConvert(d.properties.mass) + '<br><span class="label">Type:</span> ' + d.properties.recclass);
+        var tooltipWidth = d3.select('.tooltip')
+                             .node().getBoundingClientRect().width;
+        mousePos[0] = mousePos[0] < (w/2) ? mousePos[0] : mousePos[0] - tooltipWidth;
+        d3.select('.tooltip')
+          .classed('hidden', false);
+
+        d3.select('.tooltip')
+          .style({
+            left: mousePos[0] + 'px',
+            top: mousePos[1] + 'px'
+          });
       })
       .on('mouseout', function() {
         d3.select('.tooltip').classed('hidden', true);
