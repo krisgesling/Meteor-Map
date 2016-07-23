@@ -55,20 +55,21 @@ function renderMap(world, data) {
   // Draw countries on map
   d3.json(world, function(error, json) {
     if (error) return console.warn(error);
-        svg.selectAll('path')
-           .data(json.features)
-           .enter()
-           .append('path')
-           .attr('d', path)
-           .attr('stroke', '#ccc')
-           .attr('stroke-width', '0.2px')
-           .attr('id', function(d) {
-             return d.id;
-           })
-           .style('fill', '#004500');
+    svg.selectAll('path')
+        .data(json.features)
+        .enter()
+        .append('path')
+        .attr('d', path)
+        .attr('stroke', '#ccc')
+        .attr('stroke-width', '0.2px')
+        .attr('id', function(d) {
+          return d.id;
+        })
+        .style('fill', '#004500');
 
     // Call meteorite data
-    d3.json(data, function(error, json) {
+    function callMeteorite() {
+      d3.json(data, function(error, json) {
       if (error) return console.warn(error);
 
       function massConvert(mass) {
@@ -144,7 +145,9 @@ function renderMap(world, data) {
         .on('mouseout', function() {
           d3.select('.tooltip').classed('hidden', true);
         });
-    });
+      });
+    }
+    setTimeout(callMeteorite, 100);
   });
 }
 
