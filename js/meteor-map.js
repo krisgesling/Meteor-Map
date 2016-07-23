@@ -1,26 +1,16 @@
 /*** CONFIG ***/
-var mapID = '#map-container';
+var mapID = '#map-container',
+    //colorScale = ['#F9CFD7', '#EF8096', '#B5435A', '#6F1C2C', '#321319'],
+    //colorScale = ['#FF5050', '#FF1616', '#E20000', '#B10000', '#7D0000'],
+    //colorScale = ['#FF5050', '#FF0000', '#B40000', '#8A0000', '#500000'],
+    colorScale = [ '#FF0000', '#E50000', '#C20000', '#A00000'],
+    worldJSON = 'data/world-geo2-min.json',
+    dataJSON = 'data/meteorite-strike-data.json';
+//d3.scale.category20c();
 
 // Map dimensions
-var w = window.innerWidth;
-var h = window.innerHeight;
-
-var worldJSON = 'data/world-geo2-min.json';
-var dataJSON = 'data/meteorite-strike-data.json';
-var rScale;
-
-function scaleCalc(data) {
-    //console.log('ping');
-  //console.log(data[1]);
-  var rMax = d3.max(data, function(d) {
-    return d.properties.mass ? d.properties.mass : 0;
-  });
-
-  rScale = d3.scale.log()
-                .domain([0,rMax])
-                .range([1,10]);
-
-}
+var w = window.innerWidth,
+    h = window.innerHeight;
 
 function sizeChange() {
   d3.select('#map-svg')
@@ -31,23 +21,19 @@ function sizeChange() {
 }
 
 function renderMap(world, data) {
-
-
-  function zoomed() {
-        svg.attr('transform','translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
-      }
   var scaleMod = window.innerwidth < 900 ? 20 : 180;
   var projection = d3.geo.miller()
       .translate([w/2,h/2])
       .scale(scaleMod);
   var path = d3.geo.path()
                    .projection(projection);
-
+  function zoomed() {
+        svg.attr('transform','translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
+      }
   var zoom = d3.behavior.zoom()
                    .scale(1)
                    .scaleExtent([1,12])
                    .on('zoom', zoomed);
-
   var svg = d3.select(mapID)
 					  	.append('svg')
 					  	.attr({
@@ -61,14 +47,14 @@ function renderMap(world, data) {
               .call(zoom)
               .append('g')
               .attr('id', 'secondG');
-
   svg.append("rect")
     .attr("class", "overlay")
     .attr("width", w)
     .attr("height", h)
   .style('background','#266D98');
 
-  d3.json(world, function(json) {
+  d3.json(world, function(error, json) {
+    if (error) return console.warn(error);
         svg.selectAll('path')
            .data(json.features)
            .enter()
@@ -77,38 +63,60 @@ function renderMap(world, data) {
            .attr('stroke', '#ccc')
            .attr('stroke-width', '0.2px')
            .attr('id', function(d) {
-          return d.id;
-        })
+             return d.id;
+           })
            .style('fill', '#004500');
 });
-  d3.json(data, function(json) {
+  d3.json(data, function(error, json) {
+    if (error) return console.warn(error);
 
     svg.selectAll('circle')
        .data(json.features)
        .enter()
        .append('circle')
        .attr('cx', function(d) {
-         if (d.geometry) { return projection([d.geometry.coordinates[0],d.geometry.coordinates[1]])[0]; }
+         if (d.geometry) {
+           return projection([d.geometry.coordinates[0], d.geometry.coordinates[1]])[0];
+         }
        })
       .attr('cy', function(d) {
-         if (d.geometry) { return projection([d.geometry.coordinates[0],d.geometry.coordinates[1]])[1]; }
+         if (d.geometry) {
+           return projection([d.geometry.coordinates[0], d.geometry.coordinates[1]])[1];
+         }
        })
       .attr('r', function(d) {
-        //return d.properties.mass/1000000+1;
-        // need to shift to using scale
-        return d.properties.mass ? rScale(d.properties.mass) : 1;
+        // Define size of circle based on mass of meteor.
+        //Null also returns 1.
+        var r = d3.scale.sqrt()
+                  .domain([1, 23000000])
+                  .rangeRound([1, 16]);
+        d.properties.r = r(Number(d.properties.mass));
+        return d.properties.r;
       })
       .style('fill', function (d) {
-          return (d.properties.id ==  23593) ? '#6F1C2C' : 'yellow';
-    });
+        return colorScale[parseInt(d.properties.r/4-1)];
+      })
+
+      // TOOLTIPS
+      .on('mouseover', function(d) {
+        var mousePos = d3.mouse(d3.select(mapID).node()),
+            date = new Date(d.properties.year);
+        //if (d.properties.mass > 1000000) {console.log(date.getFullYear());}
+        d3.select('.tooltip h2')
+          .text(d.properties.name);
+        d3.select('.tooltip p')
+          .html('Landed: ' + date.getFullYear() + '<br>Mass: ' + d.properties.r + '<br>Classification: ' + d.properties.recclass);
+        d3.select('.tooltip').classed('hidden', false);
+      })
+      .on('mouseout', function() {
+        d3.select('.tooltip').classed('hidden', true);
+      })
+    ;
+
   });
 }
 
 /*** Primary calls ***/
-d3.json(dataJSON, function(error, json) {
-  if (error) return console.warn(error);
-    scaleCalc(json.features);
-});
 renderMap(worldJSON, dataJSON);
 
 d3.select(window).on("resize", sizeChange);
